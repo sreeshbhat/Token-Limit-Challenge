@@ -40,9 +40,41 @@ PROVIDER_ENV_MAP = {
     "Groq": "GROQ_API_KEY",
 }
 
+PROVIDER_KEY_HINTS = {
+    "OpenAI": "OpenAI keys usually start with 'sk-' or 'sess-'",
+    "Google Gemini": "Gemini keys usually start with 'AIza'",
+    "Groq": "Groq keys usually start with 'gsk_'",
+}
+
 
 def count_words(text: str) -> int:
     return len(re.findall(r"\b\S+\b", text.strip()))
+
+
+def validate_api_key_format(provider: str, api_key: str) -> bool:
+    key = api_key.strip()
+    if not key:
+        return False
+
+    if provider == "OpenAI":
+        return key.startswith(("sk-", "sess-"))
+    if provider == "Google Gemini":
+        return key.startswith("AIza")
+    if provider == "Groq":
+        return key.startswith("gsk_")
+    return True
+
+
+def get_provider_key_hint(provider: str) -> str:
+    return PROVIDER_KEY_HINTS.get(provider, "Use a valid API key for the selected provider.")
+
+
+def get_default_provider() -> str:
+    for provider, env_name in PROVIDER_ENV_MAP.items():
+        value = os.getenv(env_name, "").strip()
+        if value and validate_api_key_format(provider, value):
+            return provider
+    return "OpenAI"
 
 
 def resolve_api_key(provider: str, student_api_key: str) -> Dict[str, Optional[str]]:
@@ -51,10 +83,30 @@ def resolve_api_key(provider: str, student_api_key: str) -> Dict[str, Optional[s
     instructor_key = os.getenv(env_name, "").strip() if env_name else ""
 
     if student_key:
-        return {"api_key": student_key, "source": "student", "env_name": env_name}
+        is_valid = validate_api_key_format(provider, student_key)
+        return {
+            "api_key": student_key if is_valid else None,
+            "source": "student",
+            "env_name": env_name,
+            "is_valid": is_valid,
+            "message": None if is_valid else f"Student API key does not match {provider}. {get_provider_key_hint(provider)}.",
+        }
     if instructor_key:
-        return {"api_key": instructor_key, "source": "instructor", "env_name": env_name}
-    return {"api_key": None, "source": None, "env_name": env_name}
+        is_valid = validate_api_key_format(provider, instructor_key)
+        return {
+            "api_key": instructor_key if is_valid else None,
+            "source": "instructor",
+            "env_name": env_name,
+            "is_valid": is_valid,
+            "message": None if is_valid else f"{env_name} does not look like a valid {provider} key. {get_provider_key_hint(provider)}.",
+        }
+    return {
+        "api_key": None,
+        "source": None,
+        "env_name": env_name,
+        "is_valid": False,
+        "message": f"No API key available for {provider}.",
+    }
 
 
 def get_admin_password() -> str:

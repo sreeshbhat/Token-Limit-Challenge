@@ -7,7 +7,7 @@ from openai import OpenAI
 from utils import normalize_evaluation, safe_json_loads
 
 OPENAI_MODEL = "gpt-4o-mini"
-GEMINI_MODEL = "gemini-1.5-flash"
+GEMINI_MODEL = "gemini-2.5-flash"
 GROQ_MODEL = "llama-3.1-8b-instant"
 
 
@@ -123,6 +123,28 @@ def evaluate_prompt(
             return evaluate_with_groq(student_prompt, challenge, api_key)
         return {"error": f"Unsupported provider: {provider}"}
     except Exception as exc:
+        error_text = str(exc)
+        lowered = error_text.lower()
+
+        if "invalid api key" in lowered or "api key not valid" in lowered or "401" in lowered:
+            return {
+                "error": (
+                    f"{provider} rejected the API key. Check that you selected the right provider "
+                    "and entered the matching key type."
+                )
+            }
+        if "rate limit" in lowered or "quota" in lowered or "429" in lowered:
+            return {
+                "error": (
+                    f"{provider} rate limit or quota reached. Try again later or switch to another provider."
+                )
+            }
+        if "json" in lowered:
+            return {
+                "error": (
+                    f"{provider} returned an invalid evaluation format. Please retry the round."
+                )
+            }
         # Streamlit shows this safely instead of letting provider or JSON issues crash the app.
         return {
             "error": (

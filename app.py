@@ -16,6 +16,7 @@ from database import (
 from utils import (
     CHALLENGES,
     count_words,
+    get_default_provider,
     get_admin_password,
     inject_css,
     leaderboard_to_csv,
@@ -72,7 +73,14 @@ def current_student():
 def render_sidebar():
     with st.sidebar:
         st.header("Evaluation Settings")
-        provider = st.selectbox("Select AI provider", ["OpenAI", "Google Gemini", "Groq"])
+        providers = ["OpenAI", "Google Gemini", "Groq"]
+        default_provider = st.session_state.get("selected_provider", get_default_provider())
+        provider = st.selectbox(
+            "Select AI provider",
+            providers,
+            index=providers.index(default_provider) if default_provider in providers else 0,
+        )
+        st.session_state["selected_provider"] = provider
         student_api_key = st.text_input(
             "Your API key (optional)",
             type="password",
@@ -80,10 +88,12 @@ def render_sidebar():
         )
 
         key_info = resolve_api_key(provider, student_api_key)
-        if key_info["source"] == "student":
+        if key_info["source"] == "student" and key_info["is_valid"]:
             st.success("Using student-provided API key.")
-        elif key_info["source"] == "instructor":
+        elif key_info["source"] == "instructor" and key_info["is_valid"]:
             st.info("Using instructor fallback API key from .env.")
+        elif key_info["message"]:
+            st.warning(key_info["message"])
         else:
             st.warning(f"No API key available for {provider}.")
 
@@ -195,7 +205,8 @@ def render_challenge(provider: str, student_api_key: str) -> None:
         api_config = resolve_api_key(provider, student_api_key)
         if not api_config["api_key"]:
             st.error(
-                f"No API key found for {provider}. Add your own key in the sidebar or set {api_config['env_name']} in .env."
+                api_config["message"]
+                or f"No API key found for {provider}. Add your own key in the sidebar or set {api_config['env_name']} in .env."
             )
             return
 

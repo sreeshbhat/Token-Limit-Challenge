@@ -123,10 +123,17 @@ def inject_css() -> None:
         """
         <style>
         .stApp {
+            color: #17324a;
             background:
                 radial-gradient(circle at top right, rgba(71, 163, 255, 0.16), transparent 28%),
                 radial-gradient(circle at top left, rgba(32, 201, 151, 0.12), transparent 25%),
                 linear-gradient(180deg, #f6fbff 0%, #eef5fb 100%);
+        }
+        .stApp, .stApp p, .stApp label, .stApp span, .stApp div, .stApp li {
+            color: #17324a;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #14324a !important;
         }
         .hero-card, .metric-card {
             background: rgba(255, 255, 255, 0.88);
@@ -167,6 +174,55 @@ def inject_css() -> None:
         .small-muted {
             color: #5b7388;
             font-size: 0.92rem;
+        }
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(28, 63, 95, 0.10);
+            border-radius: 14px;
+            padding: 0.35rem;
+        }
+        .stTabs [data-baseweb="tab"] {
+            color: #23445f !important;
+            background: transparent;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        .stTabs [aria-selected="true"] {
+            background: #dff0ff !important;
+            color: #0b5cab !important;
+        }
+        .stTextInput label, .stTextArea label, .stSelectbox label, .stNumberInput label {
+            color: #17324a !important;
+            font-weight: 600;
+        }
+        .stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div {
+            color: #17324a !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            border-color: rgba(28, 63, 95, 0.18) !important;
+        }
+        .stTextInput input::placeholder, .stTextArea textarea::placeholder {
+            color: #71879b !important;
+        }
+        .stMarkdown, .stMarkdown p, .stCaptionContainer, .stAlert, .stProgress {
+            color: #17324a !important;
+        }
+        div[data-testid="stMetric"] {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(28, 63, 95, 0.10);
+            border-radius: 14px;
+            padding: 0.85rem;
+        }
+        div[data-testid="stMetricLabel"] p,
+        div[data-testid="stMetricValue"] div,
+        div[data-testid="stMetricDelta"] div {
+            color: #17324a !important;
+        }
+        div[data-testid="stForm"] {
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid rgba(28, 63, 95, 0.10);
+            border-radius: 18px;
+            padding: 1rem;
         }
         </style>
         """,
